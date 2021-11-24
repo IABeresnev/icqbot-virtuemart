@@ -193,7 +193,7 @@ func sendMessage(fCONNSTR, fTOKEN, fCHATID string) {
 
 	log.Println(bot.Info)
 
-	message := bot.NewTextMessage(fCHATID, "*********************НОВЫЙ ЗАКАЗ НА САЙТЕ********************* \n"+pokupatel+"\n\n"+pmethod+" "+dmethod+"\n"+zakaztext)
+	message := bot.NewTextMessage(fCHATID, "*********************НОВЫЙ ЗАКАЗ НА САЙТЕ №"+getOrderIDForWork(CONNSTR)+"********************* \n"+pokupatel+"\n\n"+pmethod+" "+dmethod+"\n"+zakaztext)
 	if err = message.Send(); err != nil {
 		log.Fatalf("failed to send message: %s", err)
 	}
@@ -279,7 +279,7 @@ func sendMoreMessage(fCONNSTR, fTOKEN, fCHATID, fORDERID string) {
 
 	log.Println(bot.Info)
 
-	message := bot.NewTextMessage(fCHATID, "*********************НОВЫЙ ЗАКАЗ НА САЙТЕ********************* \n"+pokupatel+"\n\n"+pmethod+" "+dmethod+"\n"+zakaztext)
+	message := bot.NewTextMessage(fCHATID, "*********************НОВЫЙ ЗАКАЗ НА САЙТЕ №"+getOrderIDForWork(CONNSTR)+"********************* \n"+pokupatel+"\n\n"+pmethod+" "+dmethod+"\n"+zakaztext)
 	if err = message.Send(); err != nil {
 		log.Fatalf("failed to send message: %s", err)
 	}
