@@ -55,6 +55,10 @@ type ldoid struct {
 	lastorder string `json:"lastorder"`
 }
 
+type OrStatus struct {
+	Ordrstat string `json:"Ordrstat"`
+}
+
 var CONNSTR string         // "user:pass@tcp(server:port)/dbname" Connection string to mysql db
 var TOKEN string           // bot token
 var CHATID string          // chatid
@@ -80,7 +84,12 @@ func main() {
 		if (non - ldo) > 1 {
 			fmt.Println("More than one order awaits")
 			for i := ldo; i <= non; i++ {
-				sendMoreMessage(CONNSTR, TOKEN, CHATID, strconv.Itoa(i))
+				if CheckOrderIDStatus(CONNSTR, strconv.Itoa(i)) {
+					sendMoreMessage(CONNSTR, TOKEN, CHATID, strconv.Itoa(i))
+				} else {
+					continue
+				}
+
 			}
 		} else {
 			fmt.Println("One order awaits")
@@ -233,6 +242,7 @@ func sendMoreMessage(fCONNSTR, fTOKEN, fCHATID, fORDERID string) {
 	}
 	var poz int
 	poz = 0
+	zakaztext = ""
 	for resultsZakaz.Next() {
 		var cart Zakaz
 		err = resultsZakaz.Scan(&cart.virtuemart_order_item_id, &cart.order_item_sku, &cart.order_item_name, &cart.product_final_price)
@@ -335,6 +345,36 @@ func getOrderIDForWork(fCONNSTR string) string {
 		IDForWork = lnumberdoneorder.lastorder
 	}
 	return IDForWork
+}
+
+func CheckOrderIDStatus(fCONNSTR string, OrderID string) bool {
+	db, err := sql.Open("mysql", fCONNSTR)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	defer db.Close()
+
+	// CheckOrderIDStatus
+	resultsNewOrder, err := db.Query("SELECT `order_status` FROM `ce7l3_virtuemart_orders` WHERE `virtuemart_order_id` =" + OrderID)
+	if err != nil {
+		panic(err.Error())
+	}
+	for resultsNewOrder.Next() {
+		var thisOrderStatus OrStatus
+		err = resultsNewOrder.Scan(&thisOrderStatus.Ordrstat)
+		if err != nil {
+			panic(err.Error())
+		}
+
+		if thisOrderStatus.Ordrstat != "P" {
+			return true
+		} else {
+			return false
+		}
+	}
+
+	return false
 }
 
 func wrightLastDoneOrderID(fCONNSTR, lastDoneOrderNumber string) {
