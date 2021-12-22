@@ -83,7 +83,7 @@ func main() {
 		fmt.Println("Let's get id done")
 		if (non - ldo) > 1 {
 			fmt.Println("More than one order awaits")
-			for i := ldo; i <= non; i++ {
+			for i := ldo + 1; i <= non; i++ { // +1 для отмены обработки текущего заказа, появлялись дубли.
 				if CheckOrderIDStatus(CONNSTR, strconv.Itoa(i)) {
 					sendMoreMessage(CONNSTR, TOKEN, CHATID, strconv.Itoa(i))
 				} else {
