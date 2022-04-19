@@ -32,7 +32,7 @@ type Config struct {
 type Buyer struct {
 	first_name string `json:"first_name"`
 	phone_2    string `json:"phone_2"`
-	address_2  string `json:"address_2"`
+	address_1  string `json:"address_1"`
 	email      string `json:"email"`
 }
 
@@ -40,6 +40,7 @@ type Zakaz struct {
 	virtuemart_order_item_id string `json:"virtuemart_order_item_id"`
 	order_item_sku           string `json:"order_item_sku"`
 	order_item_name          string `json:"order_item_name"`
+	product_quantity         string `json:"product_quantity"`
 	product_final_price      string `json:"product_final_price"`
 }
 
@@ -132,25 +133,25 @@ func sendMessage(fCONNSTR, fTOKEN, fCHATID string) {
 	defer db.Close()
 
 	// ПОКУПАТЕЛЬ
-	resultsPokupatel, err := db.Query("SELECT `first_name`,`phone_2`,`address_2`,`email` FROM `ce7l3_virtuemart_order_userinfos` where `virtuemart_order_id` = (SELECT `virtuemart_order_id` FROM `ce7l3_virtuemart_orders` WHERE `order_status` not like 'P' ORDER BY virtuemart_order_id DESC LIMIT 1)")
+	resultsPokupatel, err := db.Query("SELECT `first_name`,`phone_2`,`address_1`,`email` FROM `ce7l3_virtuemart_order_userinfos` where `virtuemart_order_id` = (SELECT `virtuemart_order_id` FROM `ce7l3_virtuemart_orders` WHERE `order_status` not like 'P' ORDER BY virtuemart_order_id DESC LIMIT 1)")
 	if err != nil {
 		panic(err.Error())
 	}
 	for resultsPokupatel.Next() {
 		var buyer Buyer
-		err = resultsPokupatel.Scan(&buyer.first_name, &buyer.phone_2, &buyer.address_2, &buyer.email)
+		err = resultsPokupatel.Scan(&buyer.first_name, &buyer.phone_2, &buyer.address_1, &buyer.email)
 		if err != nil {
 			panic(err.Error())
 		}
 
 		pokupatel = "ФИО -- " + buyer.first_name + " \n" +
 			"Телефон -- " + buyer.phone_2 + " \n" +
-			"Адрес -- " + buyer.address_2 + " \n" +
+			"Адрес -- " + buyer.address_1 + " \n" +
 			"Электронная почта -- " + buyer.email
 	}
 
 	// ПОЗИЦИИ ИЗ ЗАКАЗА
-	resultsZakaz, err := db.Query("SELECT `virtuemart_order_item_id`,`order_item_sku`,`order_item_name`,`product_final_price` FROM `ce7l3_virtuemart_order_items` where `virtuemart_order_id` = (SELECT `virtuemart_order_id` FROM `ce7l3_virtuemart_orders` WHERE `order_status` not like 'P' ORDER BY virtuemart_order_id DESC LIMIT 1)")
+	resultsZakaz, err := db.Query("SELECT `virtuemart_order_item_id`,`order_item_sku`,`order_item_name`, `product_quantity` ,`product_final_price` FROM `ce7l3_virtuemart_order_items` where `virtuemart_order_id` = (SELECT `virtuemart_order_id` FROM `ce7l3_virtuemart_orders` WHERE `order_status` not like 'P' ORDER BY virtuemart_order_id DESC LIMIT 1)")
 	if err != nil {
 		panic(err.Error())
 	}
@@ -158,12 +159,12 @@ func sendMessage(fCONNSTR, fTOKEN, fCHATID string) {
 	poz = 0
 	for resultsZakaz.Next() {
 		var cart Zakaz
-		err = resultsZakaz.Scan(&cart.virtuemart_order_item_id, &cart.order_item_sku, &cart.order_item_name, &cart.product_final_price)
+		err = resultsZakaz.Scan(&cart.virtuemart_order_item_id, &cart.order_item_sku, &cart.order_item_name, &cart.product_quantity, &cart.product_final_price)
 		if err != nil {
 			panic(err.Error())
 		}
 		poz++
-		zakaztext = zakaztext + strconv.Itoa(poz) + ") *Название: " + cart.order_item_name + "" + "* *Артикул: " + cart.order_item_sku + "" + "* *Цена на сайте: " + (cart.product_final_price)[:len(cart.product_final_price)-6] + "руб.*" + " \n"
+		zakaztext = zakaztext + strconv.Itoa(poz) + ") *Название: " + cart.order_item_name + "" + "* *Артикул: " + cart.order_item_sku + "" + "* *Количество шт: " + cart.product_quantity + "* *Цена на сайте: " + (cart.product_final_price)[:len(cart.product_final_price)-6] + "руб.*" + " \n"
 	}
 
 	// СПОСОБ ОПЛАТЫ
@@ -218,25 +219,25 @@ func sendMoreMessage(fCONNSTR, fTOKEN, fCHATID, fORDERID string) {
 	defer db.Close()
 
 	// ПОКУПАТЕЛЬ
-	resultsPokupatel, err := db.Query("SELECT `first_name`,`phone_2`,`address_2`,`email` FROM `ce7l3_virtuemart_order_userinfos` where `virtuemart_order_id` = " + fORDERID)
+	resultsPokupatel, err := db.Query("SELECT `first_name`,`phone_2`,`address_1`,`email` FROM `ce7l3_virtuemart_order_userinfos` where `virtuemart_order_id` = " + fORDERID)
 	if err != nil {
 		panic(err.Error())
 	}
 	for resultsPokupatel.Next() {
 		var buyer Buyer
-		err = resultsPokupatel.Scan(&buyer.first_name, &buyer.phone_2, &buyer.address_2, &buyer.email)
+		err = resultsPokupatel.Scan(&buyer.first_name, &buyer.phone_2, &buyer.address_1, &buyer.email)
 		if err != nil {
 			panic(err.Error())
 		}
 
 		pokupatel = "ФИО -- " + buyer.first_name + " \n" +
 			"Телефон -- " + buyer.phone_2 + " \n" +
-			"Адрес -- " + buyer.address_2 + " \n" +
+			"Адрес -- " + buyer.address_1 + " \n" +
 			"Электронная почта -- " + buyer.email
 	}
 
 	// ПОЗИЦИИ ИЗ ЗАКАЗА
-	resultsZakaz, err := db.Query("SELECT `virtuemart_order_item_id`,`order_item_sku`,`order_item_name`,`product_final_price` FROM `ce7l3_virtuemart_order_items` where `virtuemart_order_id` = " + fORDERID)
+	resultsZakaz, err := db.Query("SELECT `virtuemart_order_item_id`,`order_item_sku`,`order_item_name`, `product_quantity`, `product_final_price` FROM `ce7l3_virtuemart_order_items` where `virtuemart_order_id` = " + fORDERID)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -245,12 +246,12 @@ func sendMoreMessage(fCONNSTR, fTOKEN, fCHATID, fORDERID string) {
 	zakaztext = ""
 	for resultsZakaz.Next() {
 		var cart Zakaz
-		err = resultsZakaz.Scan(&cart.virtuemart_order_item_id, &cart.order_item_sku, &cart.order_item_name, &cart.product_final_price)
+		err = resultsZakaz.Scan(&cart.virtuemart_order_item_id, &cart.order_item_sku, &cart.order_item_name, &cart.product_quantity, &cart.product_final_price)
 		if err != nil {
 			panic(err.Error())
 		}
 		poz++
-		zakaztext = zakaztext + strconv.Itoa(poz) + ") *Название: " + cart.order_item_name + "" + "* *Артикул: " + cart.order_item_sku + "" + "* *Цена на сайте: " + (cart.product_final_price)[:len(cart.product_final_price)-6] + "руб.*" + " \n"
+		zakaztext = zakaztext + strconv.Itoa(poz) + ") *Название: " + cart.order_item_name + "" + "* *Артикул: " + cart.order_item_sku + "" + "* *Количество шт: " + cart.product_quantity + "" + "* *Цена на сайте: " + (cart.product_final_price)[:len(cart.product_final_price)-6] + "руб.*" + " \n"
 	}
 
 	// СПОСОБ ОПЛАТЫ
